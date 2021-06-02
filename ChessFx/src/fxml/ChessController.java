@@ -2,7 +2,7 @@ package fxml;
 
 
 
-import java.awt.Color;
+
 
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -13,6 +13,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 
 public class ChessController {
 	@FXML
@@ -26,8 +27,8 @@ public class ChessController {
 	@FXML
 	private FlowPane previousMoves;
 	
-	private Color player1 = Color.white;
-	private Color player2 = Color.black;
+	private Color player1 = Color.WHITE;
+	private Color player2 = Color.BLACK;
 	private Color currentPlayer = player1;
 	
 	private final String[] ROW_NAMES = {"a", "b", "c", "d", "e", "f", "g", "h"};
