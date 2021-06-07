@@ -12,6 +12,10 @@ public class Piece extends ImageView {
 		this.team = team.toLowerCase();
 	}
 	
+	public String getTeam() {
+		return team;
+	}
+	
 	protected void loadImage(String type) {
 		FileInputStream stream;
 		try {
@@ -21,6 +25,8 @@ public class Piece extends ImageView {
 			e.printStackTrace();
 		}
 	}
+	
+	
 }
 
 
