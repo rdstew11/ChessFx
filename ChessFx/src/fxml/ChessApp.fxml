@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fxml.ChessController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fxml.ChessController">
    <children>
       <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #56776c; -fx-max-height: 100; -fx-border-width: 0 0 2 0; -fx-border-color: black;">
          <children>
@@ -231,7 +231,7 @@
                   </HBox>
                   <HBox prefHeight="300.0" prefWidth="288.0" style="-fx-border-width: 0 2 2 2; -fx-border-color: black;">
                      <children>
-                        <FlowPane fx:id="WhiteCaptured" prefHeight="200.0" prefWidth="200.0" />
+                        <FlowPane fx:id="whiteCaptured" prefHeight="200.0" prefWidth="200.0" />
                         <FlowPane fx:id="blackCaptured" prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: black; -fx-border-width: 0 0 0 2;" />
                      </children>
                   </HBox>

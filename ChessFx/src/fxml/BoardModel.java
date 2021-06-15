@@ -1,10 +1,18 @@
 package fxml;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class BoardModel {	
-	private int[][] model = new int[8][8];
-	private ArrayList<Integer> captured = new ArrayList<>();
+public class BoardModel implements Cloneable, Serializable {	
+	protected int[][] model = new int[8][8];
+	protected ArrayList<Integer> deadWhite = new ArrayList<>();
+	protected ArrayList<Integer> deadBlack = new ArrayList<>();
+	protected int myPlayer = 0;
+	protected int currentPlayer = 0;
+	protected String message;
+	
+	
+	
 	
 	public BoardModel () {
 		for(int i = 0; i < 8; i++) {
@@ -37,6 +45,9 @@ public class BoardModel {
 	}
 	
 	public int get(int row, int col) {
+		if(row >= 8 || row  < 0 || col >= 8 || col < 0) {
+			return 0;
+		}
 		return model[col][row];
 	}
 	
@@ -44,27 +55,30 @@ public class BoardModel {
 		model[col][row] = val;
 	}
 	
-	public void addCaptured(int piece) {
-		captured.add(piece);
-		
-	}
-	
-	public ArrayList<Integer> getCaptured() {
-		return captured;
-	}
-
-	
 	public String toString() {
-		String output = "\t 1 2 3 4 5 6 7 8 \n";
+		String output = "";
 		
 		for(int r = 0; r < 8; r++) {
-			output += r + "\t";
 			for(int c = 0; c < 8; c++) {
 				output += model[c][r] + " ";
 			}
 			output += "\n";
 		}
+		output += "Current player: " + currentPlayer + "\nMy Player: " + myPlayer + "\nDead Black:";
+		for(int piece : deadBlack) {
+			output += " " + piece;
+		}
+		output += "\nDead White:";
+		for(int piece : deadWhite) {
+			output += " " + piece;
+		}
+		output += "\n";
 		
 		return output;
+	}
+	
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		return super.clone();
 	}
 }
