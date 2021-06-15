@@ -3,6 +3,7 @@ package fxml;
 
 
 import java.util.ArrayList;
+import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -22,10 +23,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
 public class ChessController {
-	@FXML
-	private Label whiteClock;
-	@FXML
-	private Label blackClock;
+
 	@FXML
 	private Label turnMessage;
 	@FXML
@@ -38,10 +36,10 @@ public class ChessController {
 	private FlowPane blackCaptured;
 	
 	private Background selectedBackground = new Background(new BackgroundFill(Color.GREEN, CornerRadii.EMPTY, Insets.EMPTY));
-	private int player1 = 1;
-	private int player2 = 2;	
+	private int white = 1;
+	private int black = 2;	
 
-	private int nMoves = 1;
+	
 	
 	/**
 	 * wp white pawn	bp black pawn
@@ -58,19 +56,21 @@ public class ChessController {
 	protected static final int WP = 1, WK = 2, WQ = 3, WB = 4, WN = 5, WR = 6, BP = 7, BK = 8, BQ = 9, BB = 10, BN = 11, BR =12;
 	protected static final int[][] ADJACENTS = {{0,1}, {1,1}, {1,0}, {1,-1}, {0,-1}, {-1,-1}, {-1,0}, {-1,1}};
 	protected static final int[][] KNIGHT_MOVES = {{2,1},{2,-1},{-2,1},{-2,-1},{1,2},{1,-2},{-1,2},{-1,-2}};
+	protected static final int[] whitePieces = {WP, WK, WQ, WB, WN, WR};
+	protected static final int[] blackPieces = {BP, BK, BQ, BB, BN, BR};
 	
-	private final String[] ROW_NAMES = {"a", "b", "c", "d", "e", "f", "g", "h"};
+	private final String[] COL_NAMES = {"a", "b", "c", "d", "e", "f", "g", "h"};
 	
 	private BoardModel boardModel = new BoardModel();
 	private StackPane[][] tiles = new StackPane[8][8];
 	private PlayerClient client;
+
+	
 	
 	public void initialize() throws Throwable {
 		System.out.println("Initializing controller");
 		
 		this.turnMessage.setText("White's turn to move");
-		this.whiteClock.setText("2:00");
-		this.blackClock.setText("2:00");
 		this.startUp();
 		this.gameBoard.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 			String[] firstCoordinates = null;
@@ -87,10 +87,16 @@ public class ChessController {
 				}
 				StackPane selected = (StackPane) target;
 				
-				if(!selected.getChildren().isEmpty() && firstCoordinates == null){
+				if(!selected.getChildren().isEmpty() && firstCoordinates == null && isMyTurn()){
 					originalPane = selected;
 					String id = selected.getId();
 					firstCoordinates = id.split("_");
+					int piece = boardModel.get(Integer.parseInt(firstCoordinates[1]) -  1, Integer.parseInt(firstCoordinates[0]) - 1);
+					if((boardModel.myPlayer == 1 && piece > 6)|| (boardModel.myPlayer == 2 && piece < 7)) {
+						System.out.println("This is not your piece");
+						firstCoordinates = null;
+						return;
+					}
 					originalBackground = selected.getBackground();
 					selected.setBackground(selectedBackground);
 				}
@@ -102,6 +108,8 @@ public class ChessController {
 					int r1 = Integer.parseInt(firstCoordinates[1]) - 1;
 					int c2 = Integer.parseInt(secondCoordinates[0])- 1;
 					int r2 = Integer.parseInt(secondCoordinates[1])- 1;
+					
+					
 					
 					if(r1 != r2 || c1 != c2) {
 						try {
@@ -145,19 +153,26 @@ public class ChessController {
 	}
 	
 	/**
-	 * 
+	 * Checks to make sure move is legal and that it is your turn before
+	 * moving soiurce piece to destination and capturing any piece in destination
 	 * @param row1 row index of src piece
 	 * @param col1 col index of src piece
 	 * @param row2 row index of destination
 	 * @param col2 col index of destination
-	 * @return
+	 * @return 1 if move was successful, 0 if move was aborted 
 	 * @throws Throwable
 	 */
 	private int movePiece(int row1, int col1, int row2, int col2) throws Throwable {
 		int piece = boardModel.get(row1, col1);
 		int capturedPieceNum = boardModel.get(row2, col2);
 		
-		
+		//player 1 is white
+		/**
+		if((boardModel.myPlayer == 1 && piece > 6) || (boardModel.myPlayer == 2 && piece < 7) ) {
+			System.out.println("this is not your piece");
+			return 0;
+		}
+		*/
 		if(!this.isLegal(row1,col1,row2,col2)) {
 			System.out.println("illegal move");
 			return 0;
@@ -179,7 +194,31 @@ public class ChessController {
 			boardModel.set(piece, row2, col2);
 			boardModel.set(0, row1, col1);
 			
-			String message = nMoves + ".)";
+			boardModel.whiteInCheck = isInCheck(boardModel, white);
+			boardModel.blackInCheck = isInCheck(boardModel, black);
+			if(boardModel.whiteInCheck) {
+				boardModel.whiteInCheckmate = isInCheckmate(boardModel, white);
+			}
+			else {
+				boardModel.whiteInCheckmate = false;
+			}
+			
+			if(boardModel.blackInCheck) {
+				boardModel.blackInCheckmate = isInCheckmate(boardModel, black);
+			}
+			else {
+				boardModel.blackInCheckmate = false;
+			}
+			
+
+			String message = boardModel.nMoves + ".)";
+			
+			if(boardModel.myPlayer == white) {
+				message += "White";
+			}
+			else{
+				message +="Black";
+			}
 			
 			switch(piece) {
 				case BK: case WK:
@@ -204,36 +243,527 @@ public class ChessController {
 					break;
 			}
 			
-			message += " to " + ROW_NAMES[row2] + col2;
-			Label messageLabel = new Label(message);
-			this.previousMoves.getChildren().add(messageLabel);
+			message += " to " + COL_NAMES[col2] + (row2 + 1);
+			boardModel.previousMoves.push(message);
+			
+			boardModel.nMoves++;
 			
 			this.changePlayer();
-			nMoves++;
 			this.updateBoardView();
 			this.client.sendUpdate();
 			
 			return 1;
 		}
+	}
+	
+	/**
+	 * Finds king of given team 
+	 * @param bm boardModel to search king for
+	 * @param team team who's king you are searching for
+	 * @return int array of row & col indices
+	 */
+	private int[] findKing(BoardModel bm, int team) {
+		int row = -1, col = -1;
+		for(int c = 0; c < 8 ; c++) {
+			for(int r = 0; r < 8; r++) {
+				int piece = bm.get(r, c);
+				if((piece == WK && team == white || (piece == BK && team == black))) {
+					row = r;
+					col = c;
+				}
+			}
+		}
+		int[] kingIndex = {row, col};
+		return kingIndex;
+	}
+	
+	private boolean isInCheck(BoardModel bm, int team) {
+		//find king
+		
+		int[] kingIndices = findKing(bm, team);
+		int row = kingIndices[0], col = kingIndices[1];
+		
+		//king not found
+		if(row == -1 || col == -1) {
+			return false;
+		}
+		
+		//check pawn attacks
+		if((bm.get(row + 1, col + 1) == BP || bm.get(row + 1, col - 1) == BP) && team == white) {
+			return true;
+		}
+		
+		if((bm.get(row - 1,  col + 1) == WP || bm.get(row - 1, col - 1) == WP) && team == black) {
+			return true;
+		}
+		
+		//check diagonals
+		int piece;
+		
+		//northeast (+i, +i)
+		piece = getPieceNorthEast(bm, row, col)[0];
+		//king may be attack
+		if(((piece == BB || piece == BQ) && team == white) || ((piece == WB || piece == WQ) && team == black)) {
+			return true;
+		}
+		
+		//northwest (-i, +i)
+		piece = getPieceNorthWest(bm, row, col)[0];
+		//king may be attacked
+		if(((piece == BB || piece == BQ) && team == white) || ((piece == WB || piece == WQ) && team == black)) {
+			return true;
+		}
 		
 		
+		//southwest (-i, -i)
+		piece = getPieceSouthWest(bm, row, col)[0];
+		if(((piece == BB || piece == BQ) && team == white) || ((piece == WB || piece == WQ) && team == black)) {
+			return true;
+		}
+		
+		//southeast (+i, -i)
+		piece = getPieceSouthEast(bm, row, col)[0];
+		if(((piece == BB || piece == BQ) && team == white) || ((piece == WB || piece == WQ) && team == black)) {
+			return true;
+		}
+		
+		
+		//check row & column
+		
+		//north (0, +i)
+		piece = getPieceNorth(bm, row, col)[0];
+		if(((piece == BR || piece == BQ) && team == white) || ((piece == WR || piece == WQ) && team == black)) {
+			return true;
+		}
+		
+		//east (+i, 0)
+		piece = getPieceEast(bm, row, col)[0];
+		if(((piece == BR || piece == BQ) && team == white) || ((piece == WR || piece == WQ) && team == black)) {
+			return true;
+		}
+		
+		//south (0, -i)
+		piece = getPieceSouth(bm, row, col)[0];
+		if(((piece == BR || piece == BQ) && team == white) || ((piece == WR || piece == WQ) && team == black)) {
+			return true;
+		}
+		
+		//west (-i, 0)
+		piece = getPieceWest(bm, row, col)[0];
+		if(((piece == BR || piece == BQ) && team == white) || ((piece == WR || piece == WQ) && team == black)) {
+			return true;
+		} 
+		
+		
+		//check knight move
+		for(int i = 0; i < KNIGHT_MOVES.length; i++) {
+			piece = bm.get(row + KNIGHT_MOVES[i][0], col + KNIGHT_MOVES[i][1]);
+			if((piece == BN && team == white) || (piece == WN && team == black)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	private void changePlayer() {
-		if(boardModel.currentPlayer == player1) {
-			boardModel.currentPlayer = player2;
+		String teamColor;
+		if(boardModel.currentPlayer == white) {
+			boardModel.currentPlayer = black;
+			teamColor = "Black";
 		}
 		else {
-			boardModel.currentPlayer = player1;
+			boardModel.currentPlayer = white;
+			teamColor = "White";
 		}
-		System.out.println("Changed player to " + boardModel.currentPlayer);
-		boardModel.message = (boardModel.currentPlayer + "'s turn to move");
+		
+		boardModel.message = (teamColor + "'s turn to move");
+	}
+	
+	/**
+	 * Checks to see if a team is in checkmate in the given BoardModel
+	 * @param bm BoardModel to scan for checkmate in
+	 * @param team team to scan checkmate for
+	 * @return true if in checkmate, false if not in checkmate
+	 * @throws Throwable
+	 */
+	private boolean isInCheckmate(BoardModel bm, int team) throws Throwable {
+		int[] kingIndices = findKing(bm, team);
+		int row = kingIndices[0], col = kingIndices[1];
+		
+		//can't be in checkmate if not in check
+		if(!isInCheck(bm, team)) {
+			return false;
+		}
+		
+		//see if king can just move and escape check
+		for(int i = 0; i < ADJACENTS.length; i++) {
+			BoardModel simulator = bm.clone();
+			
+			int dst = simulator.get(row + ADJACENTS[i][0], col + ADJACENTS[i][1]);
+			//if destination is on the same team, skip move
+			if(dst != 0 && ((team == white && dst < 7) || (team == black && dst > 6))) {
+				continue;
+			} else {
+				simulator.move(row, col, row + ADJACENTS[i][0], col + ADJACENTS[i][1]);
+				if(!isInCheck(simulator, team)) {
+					return false;
+				}
+			}
+		}
+		System.out.println("here");
+		//find source(s) of check, then see if there's any way to disrupt
+		ArrayList<int[]> sourcesOfCheck = getThreats(bm, row, col);
+		
+		for(int i = 0; i < sourcesOfCheck.size(); i++) {
+			int[] src = sourcesOfCheck.get(i);
+			int srcRow = src[1];
+			int srcCol = src[2];
+			int rowDiff = srcRow - row;
+			int colDiff = srcCol - col;
+			
+			//checks to see if threat can be eliminated and remove check
+			ArrayList<int[]> threatsOnSource = getThreats(bm,srcRow, srcCol);
+			for(int j = 0; j < threatsOnSource.size(); j++) {
+				int[] defender = threatsOnSource.get(j);
+				BoardModel simulator = bm.clone();
+				simulator.move(defender[1], defender[2], srcRow, srcCol);
+				if(!isInCheck(simulator, team)) {
+					System.out.println("Threat able to neutralized by piece #" + defender[0] + " moving to (" + srcRow + "," + srcCol + ")");
+					return false;
+				}
+			}
+			
+			//finds tiles in path then checks to see if threat can be blocked
+			
+			//use step to make loop in correct direction
+			int rowStep = 0, colStep = 0;
+			if(rowDiff > 0) {
+				rowStep = 1;
+			} else if(rowDiff < 0) {
+				rowStep = -1;
+			}
+			
+			if(colDiff > 0) {
+				colStep = 1;
+			} else if(colDiff < 0) {
+				colStep = -1;
+			}
+			
+			int currentRow = row + rowStep;
+			int currentCol = col + colStep;
+			
+			while(currentRow != srcRow && currentCol != srcCol) {
+				ArrayList<int[]> potentialBlockers = getThreats(bm, currentRow, currentCol);
+				for(int j = 0; j < potentialBlockers.size(); j++) {
+					int[] blocker = potentialBlockers.get(j);
+					
+					//if potential blocking piece is not on your team, skip
+					if((team == white && blocker[0] > 6) || (team == black && blocker[0] < 7)) {
+						continue;
+					} else {
+						BoardModel simulator = bm.clone();
+						simulator.move(blocker[1], blocker[2], currentRow, currentCol);
+						if(!isInCheck(simulator, team)) {
+							System.out.println("Threat able to be blocked by piece #" + blocker[0] + " by moving to (" + currentRow + "," + currentCol + ")");
+							return false;
+						}
+					}
+				}
+				currentRow += rowStep;
+				currentCol += colStep;
+			}
+			
+			
+		}
+		
+		
+		//if nothing worked, then its check mate
+		System.out.println("Threats not able to be stopped");
+		return true;
+	}
+	
+	
+	/**
+	 * Finds all pieces capable of attacking given tile
+	 * @param bm BoardModel to search through
+	 * @param row row index of tile to find threats for
+	 * @param col column index of tile to find threats for
+	 * @return ArrayList containing int arrays of {piece, row index, col index} of pieces able to attack tile
+	 */
+	private ArrayList<int[]> getThreats(BoardModel bm, int row, int col){
+		//find source(s) of check, then see if there's any way to disrupt
+		ArrayList<int[]> sourcesOfThreat = new ArrayList<>();
+		
+		int team;
+		
+		if(bm.get(row, col) == 0) {
+			team = 0;
+		} else if(bm.get(row, col) > 6) {
+			team = black;
+		} else {
+			team = white;
+		}
+		
+		//check to see if pawns can move forward into empty tile (for blocking purposes)
+		if(team == 0) {
+			if(bm.get(row - 1, col) == WP) {
+				int[] wp = {WP, row - 1, col};
+				sourcesOfThreat.add(wp);
+			}
+			if(bm.get(row - 2, col) == WP && bm.get(row -1, col) == 0 && row - 2 == 1) {
+				int[] wp = {WP, row - 2, col};
+				sourcesOfThreat.add(wp);
+			}
+			if(bm.get(row + 1, col) == BP) {
+				int[] bp = {BP, row + 1, col};
+				sourcesOfThreat.add(bp);
+			}
+			if(bm.get(row + 2, col) == BP && bm.get(row + 1, col) == 0 && row + 2 == 6) {
+				int[] bp = {BP, row + 2, col};
+				sourcesOfThreat.add(bp);
+			}
+		}
+		
+		//check ne pawn attack for white
+		if(team == white && boardModel.get(row + 1, col + 1) == BP){
+			int[] bp = {BP, row + 1, col + 1};
+			sourcesOfThreat.add(bp);
+		}
+		//check nw pawn attack for white
+		if(team == white && boardModel.get(row + 1,  col - 1) == BP) {
+			int[] bp = {BP, row + 1, col - 1};
+			sourcesOfThreat.add(bp);
+		}
+		
+		//check se pawn attack for black
+		if(team == black && boardModel.get(row - 1, col + 1) == WP){
+			int[] wp = {WP, row - 1, col + 1};
+			sourcesOfThreat.add(wp);
+		}
+		//check sw pawn attack for black
+		if(team == black && boardModel.get(row - 1,  col - 1) == WP) {
+			int[] wp = {WP, row - 1, col - 1};
+			sourcesOfThreat.add(wp);
+		}
+		
+		//checking diagonals
+		
+		int[] dir = getPieceNorthEast(bm, row, col);
+		if((team != black && (dir[0] == BQ || dir[0] == BB)) || (team != white && (dir[0] == WQ || dir[0] == WB))) {
+			sourcesOfThreat.add(dir);
+		}
+		
+		dir = getPieceNorthWest(bm, row, col);
+		if((team != black && (dir[0] == BQ || dir[0] == BB)) || (team != white && (dir[0] == WQ || dir[0] == WB))) {
+			sourcesOfThreat.add(dir);
+		}
+		
+		dir = getPieceSouthEast(bm, row, col);
+		if((team != black && (dir[0] == BQ || dir[0] == BB)) || (team != white && (dir[0] == WQ || dir[0] == WB))) {
+			sourcesOfThreat.add(dir);
+		}
+		
+		dir = getPieceSouthWest(bm, row, col);
+		if((team != black && (dir[0] == BQ || dir[0] == BB)) || (team != white && (dir[0] == WQ || dir[0] == WB))) {
+			sourcesOfThreat.add(dir);
+		}
+		
+		//checking rows and columns
+		
+		dir = getPieceNorth(bm, row, col);
+		if((team != black && (dir[0] == BQ || dir[0] == BR)) || (team != white && (dir[0] == WQ || dir[0] == WR))) {
+			sourcesOfThreat.add(dir);
+		}
+		
+		dir = getPieceEast(bm, row, col);
+		if((team != black && (dir[0] == BQ || dir[0] == BR)) || (team != white && (dir[0] == WQ || dir[0] == WR))) {
+			sourcesOfThreat.add(dir);
+		}
+		
+		dir = getPieceSouth(bm, row, col);
+		if((team != black && (dir[0] == BQ || dir[0] == BR)) || (team != white && (dir[0] == WQ || dir[0] == WR))) {
+			sourcesOfThreat.add(dir);
+		}
+		
+		dir = getPieceWest(bm, row, col);
+		if((team != black && (dir[0] == BQ || dir[0] == BR)) || (team != white && (dir[0] == WQ || dir[0] == WR))) {
+			sourcesOfThreat.add(dir);
+		}
+		
+		return sourcesOfThreat;
+	}
+	
+	/**
+	 * Gets first piece north of src tile
+	 * @param bm BoardModel to search in
+	 * @param row row index of src tile
+	 * @param col col index of src tile
+	 * @return int array containing {piece, row index, col index}
+	 */
+	private int[] getPieceNorth(BoardModel bm, int row, int col) {
+		//north (0, +i)
+		//i starts @ 1 because there's no need to check src tile
+		for(int i = 1; i < 8;  i++) {
+			int piece = bm.get(row, col + i);
+			if(piece != 0) {
+				int[] solution = {piece, row, col + i};
+				return solution;
+			}
+		}
+		int[] noSolution = {-1, -1, -1};
+		return noSolution;
+	}
+	
+	/**
+	 * Gets first piece south of src tile
+	 * @param bm BoardModel to search in
+	 * @param row row index of src tile
+	 * @param col col index of src tile
+	 * @return int array containing {piece, row index, col index}
+	 */
+	private int[] getPieceSouth(BoardModel bm, int row, int col) {
+		//South (0, -i)
+		//i starts @ 1 because there's no need to check src tile
+		for(int i = 1; i < 8;  i++) {
+			int piece = bm.get(row, col - i);
+			if(piece != 0) {
+				int[] solution = {piece, row, col - i};
+				return solution;
+			}
+		}
+		int[] noSolution = {-1, -1, -1};
+		return noSolution;	
+	}
+
+	/**
+	 * Gets first piece east of src tile
+	 * @param bm BoardModel to search in
+	 * @param row row index of src tile
+	 * @param col col index of src tile
+	 * @return integer representing first piece found
+	 */
+	private int[] getPieceEast(BoardModel bm, int row, int col) {
+		//east (+i, 0)
+		//i starts @ 1 because there's no need to check src tile
+		for(int i = 1; i < 8;  i++) {
+			int piece = bm.get(row + i, col);
+			if(piece != 0) {
+				int[] solution = {piece, row + i, col};
+				return solution;			
+			}
+		}
+		int[] noSolution = {-1, -1, -1};
+		return noSolution;	
+	}
+	
+	/**
+	 * Gets first piece west of src tile
+	 * @param bm BoardModel to search in
+	 * @param row row index of src tile
+	 * @param col col index of src tile
+	 * @return integer representing first piece found
+	 */
+	private int[] getPieceWest(BoardModel bm, int row, int col) {
+		//west (-i, 0)
+		//i starts @ 1 because there's no need to check src tile
+		for(int i = 1; i < 8;  i++) {
+			int piece = bm.get(row - i, col);
+			if(piece != 0) {
+				int[] solution = {piece, row - i, col};
+				return solution;
+			}
+		}
+		int[] noSolution = {-1, -1, -1};
+		return noSolution;	
+	}
+	
+	/**
+	 * Gets first piece northeast of src tile
+	 * @param bm BoardModel to search in
+	 * @param row row index of src tile
+	 * @param col col index of src tile
+	 * @return integer representing first piece found
+	 */
+	private int[] getPieceNorthEast(BoardModel bm, int row, int col) {
+		//northeast (+i, +i)
+		//i starts @ 1 because there's no need to check src tile
+		for(int i = 1; i < 8;  i++) {
+			int piece = bm.get(row + i, col + i);
+			if(piece != 0) {
+				int[] solution = {piece, row + i, col + i};
+				return solution;
+			}
+		}
+		int[] noSolution = {-1, -1, -1};
+		return noSolution;	
+	}
+	
+	/**
+	 * Gets first piece northwest of src tile
+	 * @param bm BoardModel to search in
+	 * @param row row index of src tile
+	 * @param col col index of src tile
+	 * @return integer representing first piece found
+	 */
+	private int[] getPieceNorthWest(BoardModel bm, int row, int col) {
+		//northwest (-i, +i)
+		//i starts @ 1 because there's no need to check src tile
+		for(int i = 1; i < 8;  i++) {
+			int piece = bm.get(row + i, col - i);
+			if(piece != 0) {
+				int[] solution = {piece, row + i, col - i};
+				return solution;
+			}
+		}
+		int[] noSolution = {-1, -1, -1};
+		return noSolution;	
+	}
+	
+	/**
+	 * Gets first piece southeast of src tile
+	 * @param bm BoardModel to search in
+	 * @param row row index of src tile
+	 * @param col col index of src tile
+	 * @return integer representing first piece found
+	 */
+	private int[] getPieceSouthEast(BoardModel bm, int row, int col) {
+		//southeast (-i, -i)
+		//i starts @ 1 because there's no need to check src tile
+		for(int i = 1; i < 8;  i++) {
+			int piece = bm.get(row - i, col - i);
+			if(piece != 0) {
+				int[] solution = {piece, row - i, col - i};
+				return solution;
+			}
+		}
+		int[] noSolution = {-1, -1, -1};
+		return noSolution;	
+	}
+	
+	/**
+	 * Gets first piece southwest of src tile
+	 * @param bm BoardModel to search in
+	 * @param row row index of src tile
+	 * @param col col index of src tile
+	 * @return integer representing first piece found
+	 */
+	private int[] getPieceSouthWest(BoardModel bm, int row, int col) {
+		//southeast (-i, +i)
+		//i starts @ 1 because there's no need to check src tile
+		for(int i = 1; i < 8;  i++) {
+			int piece = bm.get(row - i, col + i);
+			if(piece != 0) {
+				int[] solution = {piece, row - i, col + i};
+				return solution;
+			}
+		}
+		int[] noSolution = {-1, -1, -1};
+		return noSolution;
 	}
 	
 	private boolean isLegal(int r1, int c1, int r2, int c2) throws Throwable {
 		BoardModel nextMove = (BoardModel) boardModel.clone();
 		int src = nextMove.get(r1, c1);
-		int dst = nextMove.get(r2, c2);
 		ArrayList<int[]> legalMoves = new ArrayList<>();
 		
 		switch(src) {
@@ -395,7 +925,7 @@ public class ChessController {
 			case WN: case BN:
 				for(int i =0; i < KNIGHT_MOVES.length; i++) {
 					int occupyingPiece = nextMove.get(r1 + KNIGHT_MOVES[i][1], c1 + KNIGHT_MOVES[i][0]);
-					if((occupyingPiece > 6 && src < 7) || occupyingPiece == 0){
+					if((occupyingPiece > 6 && src < 7) || (occupyingPiece < 7 && src > 6) ||  occupyingPiece == 0){
 						legalMoves.add(KNIGHT_MOVES[i]);
 					}
 				}
@@ -670,6 +1200,19 @@ public class ChessController {
 				break;
 			}
 		}
+		
+		//checks if move will place you in check
+		if(isLegal) {
+			BoardModel simulator = (BoardModel) boardModel.clone();
+			simulator.move(r1, c1, r2, c2);
+			if(simulator.myPlayer == white && isInCheck(simulator, white)) {
+				isLegal = false;
+			}
+			else if(simulator.myPlayer == black && isInCheck(simulator, black)) {
+				isLegal = false;
+			}
+			
+		}
 		return isLegal;
 	}
 	
@@ -717,7 +1260,25 @@ public class ChessController {
 			this.blackCaptured.getChildren().add(piece);
 		}
 		
-		this.turnMessage.setText(boardModel.message);
+		@SuppressWarnings("unchecked")
+		Stack<String> clonedPrevMoves = (Stack<String>) boardModel.previousMoves.clone();
+		this.previousMoves.getChildren().clear();
+		while(!clonedPrevMoves.isEmpty()) {
+			Label temp = new Label(clonedPrevMoves.pop());
+			this.previousMoves.getChildren().add(temp);
+		}
+		
+		if(boardModel.blackInCheckmate) {
+			this.turnMessage.setText("White wins!");
+		} else if(boardModel.whiteInCheckmate) {
+			this.turnMessage.setText("Black wins!");
+		} else if(boardModel.blackInCheck) {
+			this.turnMessage.setText("Black in check - Black's move");
+		} else if(boardModel.whiteInCheck) {
+			this.turnMessage.setText("White in check - White's move");
+		} else {
+			this.turnMessage.setText(boardModel.message);
+		}
 	}
 	
 	private Piece numToPiece(int num)

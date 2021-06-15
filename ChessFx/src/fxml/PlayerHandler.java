@@ -35,7 +35,6 @@ public class PlayerHandler implements Runnable {
 			try {
 				Object msg = this.in.readObject();
 				this.server.notifyPlayers((BoardModel) msg);
-				System.out.println("Notified players of new boardModel");
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
@@ -48,6 +47,12 @@ public class PlayerHandler implements Runnable {
 		this.boardModel.message = bm.message;
 		this.boardModel.deadBlack = bm.deadBlack;
 		this.boardModel.deadWhite = bm.deadWhite;
+		this.boardModel.blackInCheck = bm.blackInCheck;
+		this.boardModel.whiteInCheck = bm.whiteInCheck;
+		this.boardModel.blackInCheckmate = bm.blackInCheckmate;
+		this.boardModel.whiteInCheckmate = bm.whiteInCheckmate;
+		this.boardModel.previousMoves = bm.previousMoves;
+		this.boardModel.nMoves = bm.nMoves;
 		try {
 			this.out.writeObject(this.boardModel);
 			this.out.flush();
@@ -61,9 +66,9 @@ public class PlayerHandler implements Runnable {
 	public void startGame() throws Throwable {
 		boardModel.currentPlayer = 1;
 		if(boardModel.currentPlayer == boardModel.myPlayer) {
-			boardModel.message = "Your turn, player" + boardModel.myPlayer;
+			boardModel.message = "Your turn, white";
 		} else {
-			boardModel.message = "Waiting for player" + boardModel.currentPlayer;
+			boardModel.message = "Waiting for black to move";
 		}
 		this.out.writeObject(boardModel);
 		this.out.flush();

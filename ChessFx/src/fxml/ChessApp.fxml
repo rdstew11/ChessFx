@@ -207,29 +207,16 @@
             </GridPane>
             <VBox prefHeight="550.0" prefWidth="290.0" style="-fx-background-color: bfcba8;">
                <children>
-                  <HBox prefHeight="100.0" prefWidth="200.0" style="-fx-border-style: solid; -fx-border-width: 0 2 2 2;">
+                  <StackPane prefHeight="40.0" prefWidth="200.0" style="-fx-background-color: grey; -fx-border-color: black; -fx-border-width: 0 2 2 2;">
                      <children>
-                        <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: white;">
-                           <children>
-                              <Label fx:id="whiteClock" text="2:00">
-                                 <font>
-                                    <Font name="System Bold" size="37.0" />
-                                 </font>
-                              </Label>
-                           </children>
-                        </StackPane>
-                        <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: black;">
-                           <children>
-                              <Label fx:id="blackClock" text="2:00" textFill="WHITE">
-                                 <font>
-                                    <Font name="System Bold" size="37.0" />
-                                 </font>
-                              </Label>
-                           </children>
-                        </StackPane>
+                        <Label text="Captured Pieces">
+                           <font>
+                              <Font size="24.0" />
+                           </font>
+                        </Label>
                      </children>
-                  </HBox>
-                  <HBox prefHeight="300.0" prefWidth="288.0" style="-fx-border-width: 0 2 2 2; -fx-border-color: black;">
+                  </StackPane>
+                  <HBox prefHeight="360.0" prefWidth="288.0" style="-fx-border-width: 0 2 2 2; -fx-border-color: black;">
                      <children>
                         <FlowPane fx:id="whiteCaptured" prefHeight="200.0" prefWidth="200.0" />
                         <FlowPane fx:id="blackCaptured" prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: black; -fx-border-width: 0 0 0 2;" />

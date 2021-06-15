@@ -2,6 +2,7 @@ package fxml;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Stack;
 
 public class BoardModel implements Cloneable, Serializable {	
 	protected int[][] model = new int[8][8];
@@ -10,8 +11,15 @@ public class BoardModel implements Cloneable, Serializable {
 	protected int myPlayer = 0;
 	protected int currentPlayer = 0;
 	protected String message;
+	protected Stack<String> previousMoves = new Stack<>();
 	
+	protected int nMoves = 1;
 	
+	protected boolean whiteInCheck;
+	protected boolean blackInCheck;
+	
+	protected boolean whiteInCheckmate;
+	protected boolean blackInCheckmate;
 	
 	
 	public BoardModel () {
@@ -42,7 +50,11 @@ public class BoardModel implements Cloneable, Serializable {
 		model[5][0] = ChessController.WB;
 		model[6][0] = ChessController.WN;
 		model[7][0] = ChessController.WR;
+		
+
 	}
+	
+
 	
 	public int get(int row, int col) {
 		if(row >= 8 || row  < 0 || col >= 8 || col < 0) {
@@ -53,6 +65,15 @@ public class BoardModel implements Cloneable, Serializable {
 	
 	public void set(int val, int row, int col) {
 		model[col][row] = val;
+	}
+	
+	public void move(int r1, int c1, int r2, int c2) {
+		if(r2 > 7 || c2 > 7  || r2 < 0 || c2 < 0) {
+			return;
+		} else {
+			model[c2][r2] = model[c1][r1];
+			model[c1][r1] = 0;
+		}
 	}
 	
 	public String toString() {
@@ -72,13 +93,19 @@ public class BoardModel implements Cloneable, Serializable {
 		for(int piece : deadWhite) {
 			output += " " + piece;
 		}
-		output += "\n";
-		
+		output += "\nwhite check(mate): " + whiteInCheck + " (" + whiteInCheckmate + ")" ;
+		output += "\nblack check(mate): " + blackInCheck + " (" + blackInCheckmate + ")" ;
 		return output;
 	}
 	
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
-		return super.clone();
+	protected BoardModel clone() throws CloneNotSupportedException {
+		BoardModel cloned = (BoardModel) super.clone();
+		cloned.model = new int[this.model.length][];
+		for(int i = 0; i < cloned.model.length; i++) {
+			cloned.model[i] = this.model[i].clone();
+		}
+		
+		return cloned;
 	}
 }

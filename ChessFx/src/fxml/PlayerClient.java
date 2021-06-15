@@ -33,12 +33,15 @@ public class PlayerClient implements Runnable {
 			bm.message = this.boardModel.message;
 			bm.deadWhite = this.boardModel.deadWhite;
 			bm.deadBlack = this.boardModel.deadBlack;
-			bm.myPlayer = this.boardModel.myPlayer;
+			bm.blackInCheck = this.boardModel.blackInCheck;
+			bm.whiteInCheck = this.boardModel.whiteInCheck;
+			bm.blackInCheckmate = this.boardModel.blackInCheckmate;
+			bm.whiteInCheckmate = this.boardModel.whiteInCheckmate;
+			bm.previousMoves = this.boardModel.previousMoves;
+			bm.nMoves = this.boardModel.nMoves;
 			this.out.writeObject(bm);
 			this.out.flush();
 			this.out.reset();
-			
-			System.out.println("Sent data model to server:\n" + bm);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -62,14 +65,18 @@ public class PlayerClient implements Runnable {
 					boardModel.myPlayer = playerId;
 				}
 				else if(msg instanceof BoardModel) {
-					System.out.println("Received boardModel from server");
 					BoardModel bm = (BoardModel) msg;
-					boardModel.model = bm.model;
-					boardModel.currentPlayer = bm.currentPlayer;
-					boardModel.deadWhite = bm.deadWhite;
-					boardModel.deadBlack = bm.deadBlack;
-					//boardModel.myPlayer = bm.myPlayer;
-					boardModel.message = bm.message;
+					this.boardModel.model = bm.model;
+					this.boardModel.currentPlayer = bm.currentPlayer;
+					this.boardModel.message = bm.message;
+					this.boardModel.deadBlack = bm.deadBlack;
+					this.boardModel.deadWhite = bm.deadWhite;
+					this.boardModel.blackInCheck = bm.blackInCheck;
+					this.boardModel.whiteInCheck = bm.whiteInCheck;
+					this.boardModel.blackInCheckmate = bm.blackInCheckmate;
+					this.boardModel.whiteInCheckmate = bm.whiteInCheckmate;
+					this.boardModel.previousMoves = bm.previousMoves;
+					this.boardModel.nMoves = bm.nMoves;
 					Platform.runLater(new Runnable() {
 						public void run() {
 							ctlr.updateBoardView();
