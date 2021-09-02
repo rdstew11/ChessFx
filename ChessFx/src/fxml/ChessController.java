@@ -71,7 +71,7 @@ public class ChessController {
 		System.out.println("Initializing controller");
 		
 		this.turnMessage.setText("White's turn to move");
-		this.startUp();
+	
 		this.gameBoard.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 			String[] firstCoordinates = null;
 			StackPane originalPane;
@@ -90,6 +90,7 @@ public class ChessController {
 				if(!selected.getChildren().isEmpty() && firstCoordinates == null && isMyTurn()){
 					originalPane = selected;
 					String id = selected.getId();
+					System.out.println(id);
 					firstCoordinates = id.split("_");
 					int piece = boardModel.get(Integer.parseInt(firstCoordinates[1]) -  1, Integer.parseInt(firstCoordinates[0]) - 1);
 					if((boardModel.myPlayer == 1 && piece > 6)|| (boardModel.myPlayer == 2 && piece < 7)) {
@@ -129,7 +130,7 @@ public class ChessController {
 		});
 		
 		this.initServerComms();
-		
+		this.startUp();
 		
 	}
 	/**
@@ -140,6 +141,163 @@ public class ChessController {
 		this.client = new PlayerClient(SERVER_IP, SERVER_PORT, this, boardModel);
 		ExecutorService myExec = Executors.newSingleThreadExecutor();
 		myExec.submit(this.client);
+	}
+	
+	protected void updateContext() {
+		if(boardModel.myPlayer == black) {
+			ObservableList<Node> gameBoardChildren = gameBoard.getChildren();
+			for(Node child: gameBoardChildren) {
+				String id = child.getId();
+				String newText = "";
+				if(id != null && id.length() >= 4) {
+					if(id.substring(0, 4).equals("side")) {
+						String reverseRows[] = {"8", "7", "6", "5", "4", "3", "2", "1"};
+						int number = Integer.parseInt(id.substring(4,5));
+						newText = reverseRows[number];
+					}
+					else if(id.substring(0,3).equals("bot")) {
+						String letter = id.substring(3,4);
+						String newLetter = "";
+						switch(letter) {
+						case "A":
+							newText = "H";
+							break;
+						case "B":
+							newText = "G";
+							break;
+						case "C":
+							newText = "F";
+							break;
+						case "D":
+							newText = "E";
+							break;
+						case "E":
+							newText = "D";
+							break;
+						case "F":
+							newText = "C";
+							break;
+						case "G":
+							newText = "B";
+							break;
+						case "H":
+							newText = "A";
+							break;
+						}
+					}
+				}
+				
+				Label childLabel = (Label) child;
+				childLabel.setText(newText);
+			}
+		}
+		loadTiles();
+	}
+	
+	//creates empty stackPanes nested inside gameboard (gridPane)
+	private void loadTiles() {
+		ObservableList<Node> gameBoardChildren = gameBoard.getChildren();
+		for(Node child : gameBoardChildren) {
+			
+			String id = child.getId();
+			System.out.println("First ID: " + id);
+			if(child.getId() != null) {
+				String[] indices = id.split("_");
+				int row = Integer.parseInt(indices[0]) - 1;
+				int col = Integer.parseInt(indices[1]) - 1;
+				
+				//need to flip board if player is black
+				if(boardModel.myPlayer == black) {
+					row = 7 - row;
+					col = 7 - col;
+					int idC = col + 1;
+					int idR = row + 1;
+					String newId = idR + "_" + idC;
+					System.out.println("newId :" + newId);
+					child.setId(newId);
+				}
+				
+				tiles[row][col] = (StackPane) child;
+				
+			}
+			
+		}
+	}
+	
+	
+	//Updates FXML of player clients
+	protected void updateBoardView() {
+	
+		//reads numbers from boardModel, converts to Piece and places inside
+		//stackPanes
+		if(true){
+			for(int r = 0; r < 8; r++) {
+				for(int c = 0; c < 8; c++) {
+					Piece piece = numToPiece(boardModel.get(r, c));
+					tiles[c][r].getChildren().clear();
+					if(piece != null) {
+						tiles[c][r].getChildren().add(piece);
+					}
+				}
+			}
+		}
+		/**
+		else {	//if player is black, need to flip the board
+			for(int r = 0; r < 8; r++) {
+				for(int c = 0; c < 8; c++) {
+					//need to swap H8 to the bottom left
+					int tileC = 7 - c;
+					int tileR = 7 - r;
+					Piece piece = numToPiece(boardModel.get(r, c));
+					tiles[tileC][tileR].getChildren().clear();
+					if(piece != null) {
+						tiles[tileC][tileR].getChildren().add(piece);
+					}
+				}
+			}
+		}*/
+
+		
+		//Updating white captured pieces display
+		this.whiteCaptured.getChildren().clear();
+		for(int pieceNumber : boardModel.deadWhite) {
+			Piece piece = numToPiece(pieceNumber);
+			piece.setFitWidth(45);
+			piece.setPreserveRatio(true);
+			this.whiteCaptured.getChildren().add(piece);
+		}
+		
+		//Updating black captured pieces display
+		this.blackCaptured.getChildren().clear();
+		for(int pieceNumber : boardModel.deadBlack) {
+			Piece piece = numToPiece(pieceNumber);
+			piece.setFitWidth(45);
+			piece.setPreserveRatio(true);
+			this.blackCaptured.getChildren().add(piece);
+		}
+		
+		
+		//Creating list of previous moves for the bottom right of client
+		@SuppressWarnings("unchecked")
+		Stack<String> clonedPrevMoves = (Stack<String>) boardModel.previousMoves.clone();
+		this.previousMoves.getChildren().clear();
+		while(!clonedPrevMoves.isEmpty()) {
+			Label temp = new Label(clonedPrevMoves.pop());
+			this.previousMoves.getChildren().add(temp);
+		}
+		
+		//Updating message below previous moves
+		if(boardModel.blackInCheckmate) {
+			this.turnMessage.setText("White wins!");
+		} else if(boardModel.whiteInCheckmate) {
+			this.turnMessage.setText("Black wins!");
+		} else if(boardModel.blackInCheck) {
+			this.turnMessage.setText("Black in check - Black's move");
+		} else if(boardModel.whiteInCheck) {
+			this.turnMessage.setText("White in check - White's move");
+		} else {
+			this.turnMessage.setText(boardModel.message);
+		}
 	}
 	
 	protected boolean isMyTurn() {
@@ -166,24 +324,14 @@ public class ChessController {
 		int piece = boardModel.get(row1, col1);
 		int capturedPieceNum = boardModel.get(row2, col2);
 		
-		//player 1 is white
-		/**
-		if((boardModel.myPlayer == 1 && piece > 6) || (boardModel.myPlayer == 2 && piece < 7) ) {
-			System.out.println("this is not your piece");
-			return 0;
-		}
-		*/
 		if(!this.isLegal(row1,col1,row2,col2)) {
-			System.out.println("illegal move");
 			return 0;
 		}
 		else if(!isMyTurn()) {
-			System.out.println("Is not my turn");
 			return 0;
 		}
 		else {
 			if(capturedPieceNum != 0) {
-				System.out.println("capturedPiece:" + capturedPieceNum);
 				if(capturedPieceNum > 6) {
 					boardModel.deadBlack.add(capturedPieceNum);
 				} else {
@@ -410,7 +558,6 @@ public class ChessController {
 				}
 			}
 		}
-		System.out.println("here");
 		//find source(s) of check, then see if there's any way to disrupt
 		ArrayList<int[]> sourcesOfCheck = getThreats(bm, row, col);
 		
@@ -428,7 +575,6 @@ public class ChessController {
 				BoardModel simulator = bm.clone();
 				simulator.move(defender[1], defender[2], srcRow, srcCol);
 				if(!isInCheck(simulator, team)) {
-					System.out.println("Threat able to neutralized by piece #" + defender[0] + " moving to (" + srcRow + "," + srcCol + ")");
 					return false;
 				}
 			}
@@ -464,7 +610,6 @@ public class ChessController {
 						BoardModel simulator = bm.clone();
 						simulator.move(blocker[1], blocker[2], currentRow, currentCol);
 						if(!isInCheck(simulator, team)) {
-							System.out.println("Threat able to be blocked by piece #" + blocker[0] + " by moving to (" + currentRow + "," + currentCol + ")");
 							return false;
 						}
 					}
@@ -478,7 +623,6 @@ public class ChessController {
 		
 		
 		//if nothing worked, then its check mate
-		System.out.println("Threats not able to be stopped");
 		return true;
 	}
 	
@@ -1216,71 +1360,9 @@ public class ChessController {
 		return isLegal;
 	}
 	
-	private void loadTiles() {
-		ObservableList<Node> gameBoardChildren = gameBoard.getChildren();
-		for(Node child : gameBoardChildren) {
-			
-			String id = child.getId();
-			if(child.getId() != null) {
-				String[] indices = id.split("_");
-				int row = Integer.parseInt(indices[0]) - 1;
-				int col = Integer.parseInt(indices[1]) - 1;
-				tiles[row][col] = (StackPane) child;
-			}
-			
-		}
-	}
 	
-	protected void updateBoardView() {
-		System.out.println(boardModel);
 	
-		for(int r = 0; r < 8; r++) {
-			for(int c = 0; c < 8; c++) {
-				Piece piece = numToPiece(boardModel.get(r, c));
-				tiles[c][r].getChildren().clear();
-				if(piece != null) {
-					tiles[c][r].getChildren().add(piece);
-				}
-			}
-		}
-		
-		this.whiteCaptured.getChildren().clear();
-		for(int pieceNumber : boardModel.deadWhite) {
-			Piece piece = numToPiece(pieceNumber);
-			piece.setFitWidth(45);
-			piece.setPreserveRatio(true);
-			this.whiteCaptured.getChildren().add(piece);
-		}
-		
-		this.blackCaptured.getChildren().clear();
-		for(int pieceNumber : boardModel.deadBlack) {
-			Piece piece = numToPiece(pieceNumber);
-			piece.setFitWidth(45);
-			piece.setPreserveRatio(true);
-			this.blackCaptured.getChildren().add(piece);
-		}
-		
-		@SuppressWarnings("unchecked")
-		Stack<String> clonedPrevMoves = (Stack<String>) boardModel.previousMoves.clone();
-		this.previousMoves.getChildren().clear();
-		while(!clonedPrevMoves.isEmpty()) {
-			Label temp = new Label(clonedPrevMoves.pop());
-			this.previousMoves.getChildren().add(temp);
-		}
-		
-		if(boardModel.blackInCheckmate) {
-			this.turnMessage.setText("White wins!");
-		} else if(boardModel.whiteInCheckmate) {
-			this.turnMessage.setText("Black wins!");
-		} else if(boardModel.blackInCheck) {
-			this.turnMessage.setText("Black in check - Black's move");
-		} else if(boardModel.whiteInCheck) {
-			this.turnMessage.setText("White in check - White's move");
-		} else {
-			this.turnMessage.setText(boardModel.message);
-		}
-	}
-	
+	//takes in a predefined number and returns piece that corresponds to it
 	private Piece numToPiece(int num)
 	{
 		Piece piece;

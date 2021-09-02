@@ -49,85 +49,85 @@
                 <RowConstraints minHeight="5.0" prefHeight="5.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 0 1 1 1;">
+                  <StackPane  prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 0 1 1 1;">
                      <children>
-                        <Label text="8" textFill="WHITE" />
+                        <Label fx:id="side8" text="8" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.rowIndex="1">
                      <children>
-                        <Label text="7" textFill="WHITE" />
+                        <Label fx:id="side7" text="7" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.rowIndex="2">
                      <children>
-                        <Label text="6" textFill="WHITE" />
+                        <Label fx:id="side6" text="6" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.rowIndex="3">
                      <children>
-                        <Label text="5" textFill="WHITE" />
+                        <Label fx:id="side5" text="5" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.rowIndex="4">
                      <children>
-                        <Label text="4" textFill="WHITE" />
+                        <Label fx:id="side4" text="4" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.rowIndex="5">
                      <children>
-                        <Label text="3" textFill="WHITE" />
+                        <Label fx:id="side3" text="3" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.rowIndex="6">
                      <children>
-                        <Label text="2" textFill="WHITE" />
+                        <Label fx:id="side2" text="2" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.rowIndex="7">
                      <children>
-                        <Label text="1" textFill="WHITE" />
+                        <Label fx:id="side1" text="1" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.rowIndex="8" />
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.columnIndex="1" GridPane.rowIndex="8">
                      <children>
-                        <Label text="A" textFill="WHITE" />
+                        <Label fx:id="botA" text="A" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.columnIndex="2" GridPane.rowIndex="8">
                      <children>
-                        <Label text="B" textFill="WHITE" />
+                        <Label fx:id="botB" text="B" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.columnIndex="3" GridPane.rowIndex="8">
                      <children>
-                        <Label text="C" textFill="WHITE" />
+                        <Label fx:id="botC" text="C" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.columnIndex="4" GridPane.rowIndex="8">
                      <children>
-                        <Label text="D" textFill="WHITE" />
+                        <Label fx:id="botD" text="D" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.columnIndex="5" GridPane.rowIndex="8">
                      <children>
-                        <Label text="E" textFill="WHITE" />
+                        <Label fx:id="botE"  text="E" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.columnIndex="6" GridPane.rowIndex="8">
                      <children>
-                        <Label text="F" textFill="WHITE" />
+                        <Label fx:id="botF" text="F" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1;" GridPane.columnIndex="7" GridPane.rowIndex="8">
                      <children>
-                        <Label text="G" textFill="WHITE" />
+                        <Label fx:id="botG" text="G" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: #5f6061; -fx-border-style: solid; -fx-border-width: 1 0 1 1;" GridPane.columnIndex="8" GridPane.rowIndex="8">
                      <children>
-                        <Label text="H" textFill="WHITE" />
+                        <Label fx:id="botH" text="H" textFill="WHITE" />
                      </children>
                   </StackPane>
                   <StackPane prefHeight="150.0" prefWidth="200.0" GridPane.columnIndex="1" />

@@ -63,6 +63,11 @@ public class PlayerClient implements Runnable {
 					int playerId = ((PlayerRegistration) msg).playerId;
 					System.out.println("Register as player " + playerId);
 					boardModel.myPlayer = playerId;
+					Platform.runLater(new Runnable() {
+						public void run() {
+							ctlr.updateContext();
+						}
+					});
 				}
 				else if(msg instanceof BoardModel) {
 					BoardModel bm = (BoardModel) msg;

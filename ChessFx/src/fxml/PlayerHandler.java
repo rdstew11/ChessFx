@@ -68,8 +68,9 @@ public class PlayerHandler implements Runnable {
 		if(boardModel.currentPlayer == boardModel.myPlayer) {
 			boardModel.message = "Your turn, white";
 		} else {
-			boardModel.message = "Waiting for black to move";
+			boardModel.message = "Waiting for white to move";
 		}
+		System.out.println(boardModel);
 		this.out.writeObject(boardModel);
 		this.out.flush();
 		this.out.reset();
