@@ -19,7 +19,7 @@ public class Piece extends ImageView {
 	protected void loadImage(String type) {
 		FileInputStream stream;
 		try {
-			stream = new FileInputStream("imgs/" + this.team + type + ".png");
+			stream = new FileInputStream("src/imgs/" + this.team + type + ".png");
 			this.setImage(new Image(stream));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

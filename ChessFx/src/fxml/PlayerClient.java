@@ -65,6 +65,7 @@ public class PlayerClient implements Runnable {
 					boardModel.myPlayer = playerId;
 					Platform.runLater(new Runnable() {
 						public void run() {
+							ctlr.loadTiles();
 							ctlr.updateContext();
 						}
 					});

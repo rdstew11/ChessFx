@@ -46,6 +46,7 @@ public class ChessController {
 	 * wk white king	bk black king
 	 * wq white queen	bq black queen
 	 * wb white bishop	bb black bishop
+						child.getChildrem().add(newLawbl)
 	 * wn white knight	bn black knight
 	 * wr white rook	br black rook
 	 */ 
@@ -153,11 +154,16 @@ public class ChessController {
 					if(id.substring(0, 4).equals("side")) {
 						String reverseRows[] = {"8", "7", "6", "5", "4", "3", "2", "1"};
 						int number = Integer.parseInt(id.substring(4,5));
-						newText = reverseRows[number];
+						newText = reverseRows[number - 1];
+						Label newLabel = new Label();
+						newLabel.setText(newText);
+						newLabel.setTextFill(Color.WHITE);
+						StackPane target = (StackPane) child;
+						target.getChildren().clear();
+						target.getChildren().add(newLabel);
 					}
 					else if(id.substring(0,3).equals("bot")) {
 						String letter = id.substring(3,4);
-						String newLetter = "";
 						switch(letter) {
 						case "A":
 							newText = "H";
@@ -184,43 +190,43 @@ public class ChessController {
 							newText = "A";
 							break;
 						}
+						Label newLabel = new Label();
+						newLabel.setText(newText);
+						newLabel.setTextFill(Color.WHITE);
+						StackPane target = (StackPane) child;
+						target.getChildren().clear();
+						target.getChildren().add(newLabel);
 					}
 				}
-				
-				Label childLabel = (Label) child;
-				childLabel.setText(newText);
 			}
 		}
-		loadTiles();
 	}
 	
 	//creates empty stackPanes nested inside gameboard (gridPane)
-	private void loadTiles() {
+	protected void loadTiles() {
 		ObservableList<Node> gameBoardChildren = gameBoard.getChildren();
 		for(Node child : gameBoardChildren) {
 			
 			String id = child.getId();
-			System.out.println("First ID: " + id);
 			if(child.getId() != null) {
 				String[] indices = id.split("_");
-				int row = Integer.parseInt(indices[0]) - 1;
-				int col = Integer.parseInt(indices[1]) - 1;
-				
-				//need to flip board if player is black
-				if(boardModel.myPlayer == black) {
-					row = 7 - row;
-					col = 7 - col;
-					int idC = col + 1;
-					int idR = row + 1;
-					String newId = idR + "_" + idC;
-					System.out.println("newId :" + newId);
-					child.setId(newId);
+				if(indices.length >= 2) {
+					int row = Integer.parseInt(indices[0]) - 1;
+					int col = Integer.parseInt(indices[1]) - 1;
+					
+					//need to flip board if player is black
+					if(boardModel.myPlayer == black) {
+						row = 7 - row;
+						col = 7 - col;
+						int idC = col + 1;
+						int idR = row + 1;
+						String newId = idR + "_" + idC;
+						child.setId(newId);
+					}
+					
+					tiles[row][col] = (StackPane) child;
 				}
-				
-				tiles[row][col] = (StackPane) child;
-				
 			}
-			
 		}
 	}
 	
